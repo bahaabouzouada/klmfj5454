@@ -17,27 +17,31 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-700">للمستخدمين</h4>
+            <h4 className="font-bold text-lg mb-4 text-teal-700">روابط مهمة</h4>
             <ul className="space-y-2">
-              <li><Link to="/safety" className="text-gray-600 hover:text-teal-600">نصائح الأمان</Link></li>
-              <li><Link to="/mobile-apps" className="text-gray-600 hover:text-teal-600">تطبيقات الهاتف</Link></li>
-              <li><Link to="/sitemap" className="text-gray-600 hover:text-teal-600">خريطة الموقع</Link></li>
+              <li><Link to="/magazine" className="text-gray-600 hover:text-teal-600">المجلة</Link></li>
+              <li><Link to="/selling-tips" className="text-gray-600 hover:text-teal-600">نصائح البيع</Link></li>
+              <li><Link to="/shops" className="text-gray-600 hover:text-teal-600">المتاجر والشركات</Link></li>
+              <li><Link to="/business" className="text-gray-600 hover:text-teal-600">خدمات الأعمال</Link></li>
+              <li><Link to="/help" className="text-gray-600 hover:text-teal-600">المساعدة</Link></li>
+              <li><Link to="/saved" className="text-gray-600 hover:text-teal-600">المحفوظات</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-700">للشركات</h4>
+            <h4 className="font-bold text-lg mb-4 text-teal-700">مدن جزائرية</h4>
             <ul className="space-y-2">
-              <li><Link to="/business" className="text-gray-600 hover:text-teal-600">سوبيتو للأعمال</Link></li>
-              <li><Link to="/advertise" className="text-gray-600 hover:text-teal-600">أعلن معنا</Link></li>
-              <li><Link to="/insights" className="text-gray-600 hover:text-teal-600">تحليلات</Link></li>
+              <li><Link to="/city/algiers" className="text-gray-600 hover:text-teal-600">الجزائر العاصمة</Link></li>
+              <li><Link to="/city/oran" className="text-gray-600 hover:text-teal-600">وهران</Link></li>
+              <li><Link to="/city/constantine" className="text-gray-600 hover:text-teal-600">قسنطينة</Link></li>
+              <li><Link to="/city/annaba" className="text-gray-600 hover:text-teal-600">عنابة</Link></li>
+              <li><Link to="/city/batna" className="text-gray-600 hover:text-teal-600">باتنة</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-bold text-lg mb-4 text-teal-700">تواصل معنا</h4>
             <ul className="space-y-2">
-              <li><Link to="/help" className="text-gray-600 hover:text-teal-600">المساعدة والدعم</Link></li>
               <li><Link to="/contact" className="text-gray-600 hover:text-teal-600">اتصل بنا</Link></li>
             </ul>
             <div className="mt-6">
@@ -68,7 +72,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-6 border-t border-gray-200">
           <p className="text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} سوبيتو. جميع الحقوق محفوظة.
+            © {new Date().getFullYear()} سوبيتو. جميع الحقوق محفوظة. <span className="block mt-1">الأسعار بالدينار الجزائري</span>
           </p>
         </div>
       </div>
