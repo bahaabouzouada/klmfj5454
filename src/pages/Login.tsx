@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Home } from "lucide-react";
 
 const Login = () => {
   const { toast } = useToast();
@@ -36,7 +37,14 @@ const Login = () => {
   };
 
   return (
-    <div className="container my-12 flex justify-center">
+    <div className="container my-12 flex flex-col items-center">
+      <Link to="/" className="self-start mb-6">
+        <Button variant="outline" className="gap-2">
+          <Home size={16} />
+          العودة إلى الرئيسية
+        </Button>
+      </Link>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">مرحباً بك</CardTitle>

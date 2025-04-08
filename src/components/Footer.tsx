@@ -13,18 +13,23 @@ const Footer = () => {
               <li><Link to="/careers" className="text-gray-600 hover:text-teal-600">الوظائف</Link></li>
               <li><Link to="/press" className="text-gray-600 hover:text-teal-600">الصحافة</Link></li>
               <li><Link to="/policies" className="text-gray-600 hover:text-teal-600">السياسات</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-700">روابط مهمة</h4>
-            <ul className="space-y-2">
               <li><Link to="/magazine" className="text-gray-600 hover:text-teal-600">المجلة</Link></li>
               <li><Link to="/selling-tips" className="text-gray-600 hover:text-teal-600">نصائح البيع</Link></li>
               <li><Link to="/shops" className="text-gray-600 hover:text-teal-600">المتاجر والشركات</Link></li>
               <li><Link to="/business" className="text-gray-600 hover:text-teal-600">خدمات الأعمال</Link></li>
               <li><Link to="/help" className="text-gray-600 hover:text-teal-600">المساعدة</Link></li>
               <li><Link to="/saved" className="text-gray-600 hover:text-teal-600">المحفوظات</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-bold text-lg mb-4 text-teal-700">روابط مهمة</h4>
+            <ul className="space-y-2">
+              <li><Link to="/categories/cars" className="text-gray-600 hover:text-teal-600">سيارات</Link></li>
+              <li><Link to="/categories/real-estate" className="text-gray-600 hover:text-teal-600">عقارات</Link></li>
+              <li><Link to="/categories/electronics" className="text-gray-600 hover:text-teal-600">الكترونيات</Link></li>
+              <li><Link to="/categories/furniture" className="text-gray-600 hover:text-teal-600">أثاث</Link></li>
+              <li><Link to="/categories/jobs" className="text-gray-600 hover:text-teal-600">وظائف</Link></li>
             </ul>
           </div>
           
@@ -72,7 +77,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-6 border-t border-gray-200">
           <p className="text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} كلشي. جميع الحقوق محفوظة. <span className="block mt-1">الأسعار بالدينار الجزائري</span>
+            © {new Date().getFullYear()} كلشي. جميع الحقوق محفوظة.
           </p>
         </div>
       </div>
