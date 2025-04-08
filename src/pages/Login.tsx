@@ -102,9 +102,9 @@ const Login = () => {
         </CardContent>
         <CardFooter className="flex justify-center text-sm text-gray-600">
           {activeTab === "login" ? (
-            <p>ليس لديك حساب؟ <TabsTrigger value="register" onClick={() => setActiveTab("register")} className="text-teal-600 hover:text-teal-700 p-0 bg-transparent hover:bg-transparent">سجل الآن</TabsTrigger></p>
+            <p>ليس لديك حساب؟ <Button variant="link" onClick={() => setActiveTab("register")} className="text-teal-600 hover:text-teal-700 p-0 h-auto">سجل الآن</Button></p>
           ) : (
-            <p>لديك حساب بالفعل؟ <TabsTrigger value="login" onClick={() => setActiveTab("login")} className="text-teal-600 hover:text-teal-700 p-0 bg-transparent hover:bg-transparent">تسجيل الدخول</TabsTrigger></p>
+            <p>لديك حساب بالفعل؟ <Button variant="link" onClick={() => setActiveTab("login")} className="text-teal-600 hover:text-teal-700 p-0 h-auto">تسجيل الدخول</Button></p>
           )}
         </CardFooter>
       </Card>
