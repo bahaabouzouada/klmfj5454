@@ -7,6 +7,7 @@ import HighlightCard from "@/components/HighlightCard";
 import PromotionBanner from "@/components/PromotionBanner";
 import Footer from "@/components/Footer";
 import { Car, ShoppingBag, Building2, Briefcase } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   // Sample data for highlights
@@ -23,7 +24,7 @@ const Index = () => {
       title: "كلب بودل لعبة",
       image: "https://images.unsplash.com/photo-1591768575198-88dac53fbd0a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
       category: "حيوانات أليفة",
-      price: "١٢٠٠ د.إ",
+      price: "١٢٠٠٠ د.ج",
       location: "تريفيزو (TV)",
     },
     {
@@ -33,6 +34,33 @@ const Index = () => {
       category: "حيوانات أليفة",
       location: "كومو (CO)",
     },
+  ];
+
+  // Data for keywords sections
+  const carKeywords = [
+    { id: 1, title: "سيارات كورية", href: "/search?q=سيارات-كورية" },
+    { id: 2, title: "سيارات فرنسية", href: "/search?q=سيارات-فرنسية" },
+    { id: 3, title: "سيارات ألمانية", href: "/search?q=سيارات-ألمانية" },
+    { id: 4, title: "سيارات صينية", href: "/search?q=سيارات-صينية" },
+    { id: 5, title: "سيارات يابانية", href: "/search?q=سيارات-يابانية" },
+    { id: 6, title: "هيونداي", href: "/search?q=هيونداي" },
+    { id: 7, title: "رينو", href: "/search?q=رينو" },
+    { id: 8, title: "بيجو", href: "/search?q=بيجو" },
+    { id: 9, title: "مرسيدس", href: "/search?q=مرسيدس" },
+    { id: 10, title: "بي ام دبليو", href: "/search?q=بي-ام-دبليو" },
+  ];
+
+  const electronicsKeywords = [
+    { id: 1, title: "سامسونج", href: "/search?q=سامسونج" },
+    { id: 2, title: "آيفون", href: "/search?q=آيفون" },
+    { id: 3, title: "هواوي", href: "/search?q=هواوي" },
+    { id: 4, title: "شاومي", href: "/search?q=شاومي" },
+    { id: 5, title: "اوبو", href: "/search?q=اوبو" },
+    { id: 6, title: "نوكيا", href: "/search?q=نوكيا" },
+    { id: 7, title: "سوني", href: "/search?q=سوني" },
+    { id: 8, title: "إل جي", href: "/search?q=إل-جي" },
+    { id: 9, title: "لابتوب", href: "/search?q=لابتوب" },
+    { id: 10, title: "تلفزيون", href: "/search?q=تلفزيون" },
   ];
 
   return (
@@ -127,6 +155,44 @@ const Index = () => {
               secondaryActionLink="/all"
               image="https://images.unsplash.com/photo-1550355291-bbee04a92027?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1536&q=80"
             />
+          </div>
+        </section>
+
+        {/* Keywords for Cars */}
+        <section className="py-8 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-xl font-bold mb-6">تصفح حسب نوع السيارة</h2>
+            
+            <div className="flex flex-wrap gap-3">
+              {carKeywords.map((keyword) => (
+                <Link 
+                  key={keyword.id} 
+                  to={keyword.href}
+                  className="bg-white px-4 py-2 rounded-full text-sm border border-gray-200 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-600 transition-colors"
+                >
+                  {keyword.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Keywords for Electronics */}
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <h2 className="text-xl font-bold mb-6">تصفح حسب الإلكترونيات</h2>
+            
+            <div className="flex flex-wrap gap-3">
+              {electronicsKeywords.map((keyword) => (
+                <Link 
+                  key={keyword.id} 
+                  to={keyword.href}
+                  className="bg-white px-4 py-2 rounded-full text-sm border border-gray-200 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 transition-colors"
+                >
+                  {keyword.title}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       </main>

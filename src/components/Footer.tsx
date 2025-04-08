@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-700">سوبيتو</h4>
+            <h4 className="font-bold text-lg mb-4 text-teal-700">كلشي</h4>
             <ul className="space-y-2">
               <li><Link to="/about" className="text-gray-600 hover:text-teal-600">من نحن</Link></li>
               <li><Link to="/careers" className="text-gray-600 hover:text-teal-600">الوظائف</Link></li>
@@ -72,7 +72,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-6 border-t border-gray-200">
           <p className="text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} سوبيتو. جميع الحقوق محفوظة. <span className="block mt-1">الأسعار بالدينار الجزائري</span>
+            © {new Date().getFullYear()} كلشي. جميع الحقوق محفوظة. <span className="block mt-1">الأسعار بالدينار الجزائري</span>
           </p>
         </div>
       </div>
