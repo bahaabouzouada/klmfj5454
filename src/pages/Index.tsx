@@ -10,29 +10,37 @@ import { Car, ShoppingBag, Building2, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  // Sample data for highlights
+  // Updated highlights with more realistic product listings
   const highlights = [
     {
       id: 1,
-      title: "قطة مين كون أنثى",
-      image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1143&q=80",
-      category: "حيوانات أليفة",
-      location: "سان موريتز (CO)",
+      title: "شاشة سامسونج QLED 4K جديدة - 65 بوصة",
+      image: "https://images.unsplash.com/photo-1593640495390-1d98f0c8ddbe?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+      category: "إلكترونيات",
+      price: "180,000 دج",
+      location: "الجزائر العاصمة",
+      condition: "جديد",
+      seller: "محل الإلكترونيات المركزي"
     },
     {
       id: 2,
-      title: "كلب بودل لعبة",
-      image: "https://images.unsplash.com/photo-1591768575198-88dac53fbd0a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      category: "حيوانات أليفة",
-      price: "١٢٠٠٠ د.ج",
-      location: "تريفيزو (TV)",
+      title: "سيارة هيونداي أكسنت 2019 - حالة ممتازة",
+      image: "https://images.unsplash.com/photo-1555367692-1960a922f8e5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80",
+      category: "سيارات مستعملة",
+      price: "1,200,000 دج",
+      location: "وهران",
+      condition: "مستعمل - ممتاز",
+      seller: "معرض السيارات الوطني"
     },
     {
       id: 3,
-      title: "كلب جيرمان سبيتز قزم",
-      image: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=770&q=80",
-      category: "حيوانات أليفة",
-      location: "كومو (CO)",
+      title: "هاتف آيفون 13 برو - 256 جيجا بايت",
+      image: "https://images.unsplash.com/photo-1615394239346-8a6da8d64279?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+      category: "هواتف ذكية",
+      price: "95,000 دج",
+      location: "قسنطينة",
+      condition: "جديد - بكفالة",
+      seller: "متجر التكنولوجيا"
     },
   ];
 
@@ -135,6 +143,7 @@ const Index = () => {
                   category={item.category}
                   price={item.price}
                   location={item.location}
+                  // Pass additional details to the card component
                 />
               ))}
             </div>
