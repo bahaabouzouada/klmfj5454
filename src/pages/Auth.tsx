@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import CreateAdminButton from "@/components/CreateAdminButton";
+import { Separator } from "@/components/ui/separator";
 
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
   
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -36,13 +45,19 @@ const Auth = () => {
       const { error } = await signIn(loginData.email, loginData.password);
       
       if (error) {
-        toast.error(error.message);
+        console.error("Login error:", error);
+        if (error.message === "Invalid login credentials") {
+          toast.error("بيانات الدخول غير صحيحة، تأكد من البريد الإلكتروني وكلمة المرور");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.success("تم تسجيل الدخول بنجاح");
         navigate("/");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Login exception:", error);
+      toast.error(error.message || "حدث خطأ أثناء تسجيل الدخول");
     } finally {
       setIsLoading(false);
     }
@@ -66,13 +81,16 @@ const Auth = () => {
       );
       
       if (error) {
+        console.error("Registration error:", error);
         toast.error(error.message);
       } else {
         toast.success("تم إنشاء الحساب بنجاح");
+        toast.info("تم تسجيل دخولك تلقائيًا");
         navigate("/");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Registration exception:", error);
+      toast.error(error.message || "حدث خطأ أثناء إنشاء الحساب");
     } finally {
       setIsLoading(false);
     }
@@ -175,6 +193,15 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-6">
+            <Separator className="my-4" />
+            <h3 className="text-sm font-medium mb-2 text-center">إنشاء حساب المدير</h3>
+            <p className="text-xs text-gray-500 mb-3 text-center">
+              انقر على الزر أدناه لإنشاء حساب المدير (admin@example.com / pass123)
+            </p>
+            <CreateAdminButton />
+          </div>
         </CardContent>
         <CardFooter className="text-center">
           <p className="text-sm text-gray-500 w-full">

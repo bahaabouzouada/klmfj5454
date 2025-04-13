@@ -1,95 +1,87 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.0";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
-
+  
   try {
-    // Create a Supabase client with the Admin key
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-
-    if (!supabaseUrl || !supabaseServiceRole) {
-      return new Response(
-        JSON.stringify({ error: "Missing environment variables" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // First check if the admin user already exists
-    const { data: existingUser, error: existingUserError } = await supabaseAdmin.auth.admin.listUsers();
+    // Create a Supabase client with the admin key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabase = createClient(supabaseUrl, supabaseKey)
     
-    if (existingUserError) {
-      throw existingUserError;
+    // Check if admin user already exists
+    const { data: existingUser, error: lookupError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('is_admin', true)
+      .maybeSingle()
+    
+    if (lookupError) {
+      throw lookupError
     }
-
-    // Check if admin@example.com exists in the user list
-    const adminExists = existingUser.users.some(user => user.email === "admin@example.com");
-
-    if (adminExists) {
+    
+    // If admin exists, return info
+    if (existingUser) {
       return new Response(
-        JSON.stringify({ message: "Admin user already exists" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({ 
+          success: true, 
+          message: 'Admin user already exists',
+          user: { email: 'admin@example.com' }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
-
+    
     // Create the admin user
-    const { data: adminUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
-      email: "admin@example.com",
-      password: "pass123",
+    const { error: signUpError, data: signUpData } = await supabase.auth.admin.createUser({
+      email: 'admin@example.com',
+      password: 'pass123',
       email_confirm: true,
       user_metadata: {
-        username: "admin",
-        first_name: "مدير",
-        last_name: "النظام",
-      },
-    });
-
-    if (createUserError) {
-      throw createUserError;
+        username: 'admin',
+        first_name: 'Admin',
+        last_name: 'User'
+      }
+    })
+    
+    if (signUpError) {
+      throw signUpError
     }
-
-    // Set the user as admin in the profiles table
-    if (adminUser.user) {
-      const { error: updateProfileError } = await supabaseAdmin
-        .from("profiles")
+    
+    // Ensure the user has admin privileges in profiles table
+    if (signUpData.user) {
+      const { error: updateError } = await supabase
+        .from('profiles')
         .update({ is_admin: true })
-        .eq("id", adminUser.user.id);
-
-      if (updateProfileError) {
-        throw updateProfileError;
+        .eq('id', signUpData.user.id)
+      
+      if (updateError) {
+        throw updateError
       }
     }
-
-    return new Response(
-      JSON.stringify({ 
-        message: "Admin user created successfully", 
-        user: adminUser.user 
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    console.error("Error creating admin user:", error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+      JSON.stringify({ 
+        success: true, 
+        message: 'Admin user created successfully',
+        user: { email: 'admin@example.com' }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    )
   }
-});
+})
