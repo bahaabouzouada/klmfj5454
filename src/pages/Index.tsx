@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
@@ -13,7 +12,7 @@ const Index = () => {
   // Updated highlights with more realistic product listings
   const highlights = [
     {
-      id: 1,
+      id: "1",
       title: "شاشة سامسونج QLED 4K جديدة - 65 بوصة",
       image: "https://images.unsplash.com/photo-1593640495390-1d98f0c8ddbe?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
       category: "إلكترونيات",
@@ -23,7 +22,7 @@ const Index = () => {
       seller: "محل الإلكترونيات المركزي"
     },
     {
-      id: 2,
+      id: "2",
       title: "سيارة هيونداي أكسنت 2019 - حالة ممتازة",
       image: "https://images.unsplash.com/photo-1555367692-1960a922f8e5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80",
       category: "سيارات مستعملة",
@@ -33,7 +32,7 @@ const Index = () => {
       seller: "معرض السيارات الوطني"
     },
     {
-      id: 3,
+      id: "3",
       title: "هاتف آيفون 13 برو - 256 جيجا بايت",
       image: "https://images.unsplash.com/photo-1615394239346-8a6da8d64279?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
       category: "هواتف ذكية",
@@ -138,12 +137,14 @@ const Index = () => {
               {highlights.map((item) => (
                 <HighlightCard
                   key={item.id}
+                  id={item.id}
                   title={item.title}
                   image={item.image}
                   category={item.category}
                   price={item.price}
                   location={item.location}
-                  // Pass additional details to the card component
+                  condition={item.condition}
+                  seller={item.seller}
                 />
               ))}
             </div>

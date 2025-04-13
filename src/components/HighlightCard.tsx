@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 
 interface HighlightCardProps {
+  id: string | number;
   title: string;
   image: string;
   category: string;
@@ -12,6 +13,7 @@ interface HighlightCardProps {
 }
 
 const HighlightCard = ({ 
+  id,
   title, 
   image, 
   category, 
@@ -21,7 +23,7 @@ const HighlightCard = ({
   seller 
 }: HighlightCardProps) => {
   return (
-    <Link to="#" className="block rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+    <Link to={`/product/${id}`} className="block rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
       <div className="relative h-48 overflow-hidden">
         <img 
           src={image} 
