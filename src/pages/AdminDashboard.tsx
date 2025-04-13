@@ -1,8 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   BarChart,
   CheckCircle,
@@ -16,6 +17,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import AddProductButton from "@/components/AddProductButton";
 
 type StatsCardProps = {
   title: string;
@@ -53,22 +55,20 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
+  const [requireEmailConfirmation, setRequireEmailConfirmation] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        // Fetch users count
         const { count: usersCount, error: usersError } = await supabase
           .from("profiles")
           .select("*", { count: "exact", head: true });
 
-        // Fetch products count
         const { count: productsCount, error: productsError } = await supabase
           .from("products")
           .select("*", { count: "exact", head: true });
 
-        // Fetch messages count
         const { count: messagesCount, error: messagesError } = await supabase
           .from("messages")
           .select("*", { count: "exact", head: true });
@@ -83,7 +83,6 @@ const AdminDashboard = () => {
           messages: messagesCount || 0,
         });
 
-        // Fetch recent users
         const { data: recentUsersData, error: recentUsersError } = await supabase
           .from("profiles")
           .select("*")
@@ -93,7 +92,6 @@ const AdminDashboard = () => {
         if (recentUsersError) throw new Error("Error fetching recent users");
         setRecentUsers(recentUsersData || []);
 
-        // Fetch recent products
         const { data: recentProductsData, error: recentProductsError } = await supabase
           .from("products")
           .select("*")
@@ -110,12 +108,31 @@ const AdminDashboard = () => {
       }
     };
 
-    if (!authLoading && isAdmin) {
+    const fetchEmailConfirmationSetting = async () => {
+      try {
+        setRequireEmailConfirmation(localStorage.getItem('requireEmailConfirmation') === 'true');
+      } catch (error) {
+        console.error("Error fetching email confirmation setting:", error);
+      }
+    };
+
+    if (!authLoading) {
       fetchStats();
+      fetchEmailConfirmationSetting();
     }
   }, [authLoading, isAdmin]);
 
-  // Redirect if not admin
+  const toggleEmailConfirmation = async (value: boolean) => {
+    try {
+      localStorage.setItem('requireEmailConfirmation', value.toString());
+      setRequireEmailConfirmation(value);
+      toast.success(value ? 'تم تفعيل تأكيد البريد الإلكتروني' : 'تم إلغاء تفعيل تأكيد البريد الإلكتروني');
+    } catch (error) {
+      console.error("Error updating email confirmation setting:", error);
+      toast.error('حدث خطأ أثناء تحديث إعدادات تأكيد البريد الإلكتروني');
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && !isAdmin) {
       toast.error("ليس لديك صلاحية الوصول إلى لوحة التحكم");
@@ -133,7 +150,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Admin Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="container py-4 flex justify-between items-center">
           <div className="flex items-center">
@@ -141,6 +157,7 @@ const AdminDashboard = () => {
             <span className="text-sm text-gray-500">لوحة التحكم</span>
           </div>
           <div className="flex items-center gap-4">
+            <AddProductButton />
             <Button variant="outline" size="sm" asChild>
               <Link to="/">
                 <Home className="w-4 h-4 ml-2" />
@@ -157,10 +174,8 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Admin Content */}
       <div className="container py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="md:col-span-1">
             <Card>
               <CardContent className="p-0">
@@ -218,10 +233,12 @@ const AdminDashboard = () => {
             </Card>
           </div>
 
-          {/* Main Content */}
           <div className="md:col-span-3">
             {activeTab === "overview" && (
               <div className="space-y-6">
+                <div className="flex justify-end mb-4">
+                  <AddProductButton />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <StatsCard 
                     title="المستخدمون" 
@@ -313,21 +330,44 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {activeTab !== "overview" && (
+            {activeTab === "settings" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>الإعدادات</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="email-confirmation">تأكيد البريد الإلكتروني</Label>
+                        <p className="text-sm text-muted-foreground">
+                          تفعيل هذا الخيار سيطلب من المستخدمين الجدد تأكيد بريدهم الإلكتروني
+                        </p>
+                      </div>
+                      <Switch 
+                        id="email-confirmation" 
+                        checked={requireEmailConfirmation}
+                        onCheckedChange={toggleEmailConfirmation}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {(activeTab === "messages" || activeTab === "stats") && (
               <Card>
                 <CardHeader>
                   <CardTitle>
                     {activeTab === "messages" && "إدارة الرسائل"}
                     {activeTab === "stats" && "الإحصائيات"}
-                    {activeTab === "settings" && "الإعدادات"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
                     <p className="text-gray-500">محتوى {
                       activeTab === "messages" ? "الرسائل" : 
-                      activeTab === "stats" ? "الإحصائيات" : 
-                      "الإعدادات"
+                      "الإحصائيات"
                     } هنا</p>
                   </div>
                 </CardContent>
