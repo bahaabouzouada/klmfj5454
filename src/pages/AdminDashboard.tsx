@@ -1,9 +1,8 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart,
   CheckCircle,
@@ -14,10 +13,124 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+type StatsCardProps = {
+  title: string;
+  value: string | number;
+  change?: string;
+  icon: React.ReactNode;
+};
+
+const StatsCard = ({ title, value, change, icon }: StatsCardProps) => {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm text-gray-500">{title}</p>
+            <h3 className="text-2xl font-bold mt-1">{value}</h3>
+            {change && <p className="text-xs text-green-600 mt-1">{change}</p>}
+          </div>
+          <div className="bg-teal-50 p-2 rounded-md text-teal-600">{icon}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const AdminDashboard = () => {
+  const { isAdmin, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  
+  const [stats, setStats] = useState({
+    users: 0,
+    products: 0,
+    messages: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [recentUsers, setRecentUsers] = useState<any[]>([]);
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        // Fetch users count
+        const { count: usersCount, error: usersError } = await supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true });
+
+        // Fetch products count
+        const { count: productsCount, error: productsError } = await supabase
+          .from("products")
+          .select("*", { count: "exact", head: true });
+
+        // Fetch messages count
+        const { count: messagesCount, error: messagesError } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true });
+
+        if (usersError || productsError || messagesError) {
+          throw new Error("Error fetching stats");
+        }
+
+        setStats({
+          users: usersCount || 0,
+          products: productsCount || 0,
+          messages: messagesCount || 0,
+        });
+
+        // Fetch recent users
+        const { data: recentUsersData, error: recentUsersError } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (recentUsersError) throw new Error("Error fetching recent users");
+        setRecentUsers(recentUsersData || []);
+
+        // Fetch recent products
+        const { data: recentProductsData, error: recentProductsError } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (recentProductsError) throw new Error("Error fetching recent products");
+        setRecentProducts(recentProductsData || []);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        toast.error("حدث خطأ أثناء جلب بيانات لوحة التحكم");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading && isAdmin) {
+      fetchStats();
+    }
+  }, [authLoading, isAdmin]);
+
+  // Redirect if not admin
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      toast.error("ليس لديك صلاحية الوصول إلى لوحة التحكم");
+      navigate("/");
+    }
+  }, [authLoading, isAdmin, navigate]);
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -63,18 +176,18 @@ const AdminDashboard = () => {
                   <Button
                     variant={activeTab === "users" ? "default" : "ghost"}
                     className="w-full justify-start rounded-none pr-2 text-right"
-                    onClick={() => setActiveTab("users")}
+                    onClick={() => navigate("/admin/users")}
                   >
                     <Users className="h-4 w-4 ml-2" />
                     المستخدمون
                   </Button>
                   <Button
-                    variant={activeTab === "listings" ? "default" : "ghost"}
+                    variant={activeTab === "products" ? "default" : "ghost"}
                     className="w-full justify-start rounded-none pr-2 text-right"
-                    onClick={() => setActiveTab("listings")}
+                    onClick={() => navigate("/admin/products")}
                   >
                     <ShoppingBag className="h-4 w-4 ml-2" />
-                    الإعلانات
+                    المنتجات
                   </Button>
                   <Button
                     variant={activeTab === "messages" ? "default" : "ghost"}
@@ -111,22 +224,19 @@ const AdminDashboard = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <StatsCard 
-                    title="المستخدمون النشطون" 
-                    value="2,543" 
-                    change="+12%" 
+                    title="المستخدمون" 
+                    value={loading ? "..." : stats.users} 
                     icon={<Users className="h-5 w-5" />} 
                   />
                   <StatsCard 
-                    title="الإعلانات الجديدة" 
-                    value="128" 
-                    change="+24%" 
+                    title="المنتجات" 
+                    value={loading ? "..." : stats.products} 
                     icon={<ShoppingBag className="h-5 w-5" />} 
                   />
                   <StatsCard 
-                    title="نسبة الاكتمال" 
-                    value="94%" 
-                    change="+3%" 
-                    icon={<CheckCircle className="h-5 w-5" />} 
+                    title="الرسائل" 
+                    value={loading ? "..." : stats.messages} 
+                    icon={<MessageSquare className="h-5 w-5" />} 
                   />
                 </div>
                 
@@ -148,43 +258,54 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {['أحمد محمد', 'سارة علي', 'خالد عمر', 'فاطمة أحمد'].map((name) => (
-                          <div key={name} className="flex items-center gap-3 border-b pb-2">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium">
-                              {name.charAt(0)}
+                        {loading ? (
+                          <p className="text-center py-4">جاري التحميل...</p>
+                        ) : recentUsers.length === 0 ? (
+                          <p className="text-center py-4">لا يوجد مستخدمين</p>
+                        ) : (
+                          recentUsers.map((user) => (
+                            <div key={user.id} className="flex items-center gap-3 border-b pb-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium">
+                                {user.username.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium">{user.username}</p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{name}</p>
-                              <p className="text-xs text-gray-500">انضم اليوم</p>
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle>أحدث الإعلانات</CardTitle>
+                      <CardTitle>أحدث المنتجات</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {[
-                          'شقة فاخرة للبيع', 
-                          'سيارة مرسيدس 2022', 
-                          'هاتف iPhone 14', 
-                          'كمبيوتر محمول'
-                        ].map((listing) => (
-                          <div key={listing} className="flex items-center gap-3 border-b pb-2">
-                            <div className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center text-gray-500">
-                              <ShoppingBag className="h-4 w-4" />
+                        {loading ? (
+                          <p className="text-center py-4">جاري التحميل...</p>
+                        ) : recentProducts.length === 0 ? (
+                          <p className="text-center py-4">لا توجد منتجات</p>
+                        ) : (
+                          recentProducts.map((product) => (
+                            <div key={product.id} className="flex items-center gap-3 border-b pb-2">
+                              <div className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center text-gray-500">
+                                <ShoppingBag className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{product.title}</p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(product.created_at).toLocaleDateString('ar-SA')}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{listing}</p>
-                              <p className="text-xs text-gray-500">نُشر منذ ساعة</p>
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -196,9 +317,7 @@ const AdminDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {activeTab === "users" && "إدارة المستخدمين"}
-                    {activeTab === "listings" && "إدارة الإعلانات"}
-                    {activeTab === "messages" && "الرسائل"}
+                    {activeTab === "messages" && "إدارة الرسائل"}
                     {activeTab === "stats" && "الإحصائيات"}
                     {activeTab === "settings" && "الإعدادات"}
                   </CardTitle>
@@ -206,8 +325,6 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
                     <p className="text-gray-500">محتوى {
-                      activeTab === "users" ? "المستخدمين" : 
-                      activeTab === "listings" ? "الإعلانات" : 
                       activeTab === "messages" ? "الرسائل" : 
                       activeTab === "stats" ? "الإحصائيات" : 
                       "الإعدادات"
@@ -220,36 +337,6 @@ const AdminDashboard = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-// Stats Card Component
-const StatsCard = ({ 
-  title, 
-  value, 
-  change, 
-  icon 
-}: { 
-  title: string, 
-  value: string, 
-  change: string, 
-  icon: React.ReactNode 
-}) => {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm text-gray-500">{title}</p>
-            <h3 className="text-2xl font-bold mt-1">{value}</h3>
-            <p className="text-xs text-green-600 mt-1">{change} من الشهر الماضي</p>
-          </div>
-          <div className="bg-teal-50 p-2 rounded-md text-teal-600">
-            {icon}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 
