@@ -95,7 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       options: {
         data: {
           username
-        }
+        },
+        emailRedirectTo: window.location.origin,
       }
     });
   };

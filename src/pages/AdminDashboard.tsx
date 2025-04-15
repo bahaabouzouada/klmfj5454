@@ -55,7 +55,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
-  const [requireEmailConfirmation, setRequireEmailConfirmation] = useState(true);
+  const [requireEmailConfirmation, setRequireEmailConfirmation] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
