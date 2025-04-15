@@ -17,6 +17,7 @@ import AddProduct from "./pages/AddProduct";
 import SearchResults from "./pages/SearchResults";
 import Profile from "./pages/Profile";
 import UserProducts from "./pages/UserProducts";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/product/add" element={<AddProduct />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/products" element={<UserProducts />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
