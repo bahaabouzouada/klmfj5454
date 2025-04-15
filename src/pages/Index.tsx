@@ -36,6 +36,40 @@ const Index = () => {
     fetchLatestProducts();
   }, []);
 
+  // Define sample highlights for the static section
+  const highlights = [
+    {
+      id: 1,
+      title: "سيارة فورد موستانج 2022",
+      image: "https://images.unsplash.com/photo-1581650107963-3e8c1f48241b?w=800&auto=format&fit=crop",
+      category: "سيارات",
+      price: "3,200,000 دج",
+      location: "الجزائر العاصمة",
+      condition: "جديد",
+      seller: "محمد"
+    },
+    {
+      id: 2,
+      title: "شقة فاخرة للإيجار",
+      image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&auto=format&fit=crop",
+      category: "عقارات",
+      price: "70,000 دج / شهر",
+      location: "وهران",
+      condition: "ممتاز",
+      seller: "أحمد"
+    },
+    {
+      id: 3,
+      title: "آيفون 13 برو ماكس",
+      image: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=800&auto=format&fit=crop",
+      category: "إلكترونيات",
+      price: "180,000 دج",
+      location: "قسنطينة",
+      condition: "مستعمل",
+      seller: "فاطمة"
+    }
+  ];
+
   // Data for keywords sections
   const carKeywords = [
     { id: 1, title: "سيارات كورية", href: "/search?q=سيارات-كورية" },

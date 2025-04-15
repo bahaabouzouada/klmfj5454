@@ -9,12 +9,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+interface FilterOption {
+  id: string;
+  label: string;
+}
+
 interface FilterGroup {
   title: string;
-  options: {
-    id: string;
-    label: string;
-  }[];
+  options: FilterOption[];
 }
 
 interface FilterSidebarProps {

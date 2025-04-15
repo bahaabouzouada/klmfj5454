@@ -3,7 +3,7 @@ import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ResultCardProps {
-  id: number;
+  id: number | string;
   title: string;
   price?: string;
   location: string;

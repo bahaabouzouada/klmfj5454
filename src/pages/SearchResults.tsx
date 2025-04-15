@@ -51,31 +51,35 @@ const SearchResults = () => {
     }
   }, [query, toast]);
 
-  // Filter group for the sidebar
+  // Filter group for the sidebar - fixed to match the FilterSidebar component type
   const filterGroups = [
     {
-      id: "category",
       title: "الفئة",
       options: [
-        { value: "electronics", label: "إلكترونيات" },
-        { value: "cars", label: "سيارات" },
-        { value: "realestate", label: "عقارات" },
-        { value: "furniture", label: "أثاث" },
-        { value: "other", label: "أخرى" },
+        { id: "electronics", label: "إلكترونيات" },
+        { id: "cars", label: "سيارات" },
+        { id: "realestate", label: "عقارات" },
+        { id: "furniture", label: "أثاث" },
+        { id: "other", label: "أخرى" },
       ],
     },
     {
-      id: "price",
       title: "السعر",
       options: [
-        { value: "0-1000", label: "0 - 1,000 دج" },
-        { value: "1000-5000", label: "1,000 - 5,000 دج" },
-        { value: "5000-10000", label: "5,000 - 10,000 دج" },
-        { value: "10000-50000", label: "10,000 - 50,000 دج" },
-        { value: "50000+", label: "50,000+ دج" },
+        { id: "0-1000", label: "0 - 1,000 دج" },
+        { id: "1000-5000", label: "1,000 - 5,000 دج" },
+        { id: "5000-10000", label: "5,000 - 10,000 دج" },
+        { id: "10000-50000", label: "10,000 - 50,000 دج" },
+        { id: "50000+", label: "50,000+ دج" },
       ],
     },
   ];
+
+  // Format the date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-DZ');
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -98,16 +102,17 @@ const SearchResults = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
               </div>
             ) : results.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {results.map((product) => (
                   <ResultCard
                     key={product.id}
                     id={product.id}
                     title={product.title}
                     price={product.price.toString()}
-                    image={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/300"}
                     location={product.location}
-                    category={product.category}
+                    image={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/300"}
+                    date={formatDate(product.created_at)}
+                    href={`/product/${product.id}`}
                   />
                 ))}
               </div>
