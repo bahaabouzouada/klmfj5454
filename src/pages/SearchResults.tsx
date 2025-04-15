@@ -1,123 +1,121 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import SearchBar from "@/components/SearchBar";
 import Footer from "@/components/Footer";
-import ResultCard from "@/components/ResultCard";
 import FilterSidebar from "@/components/FilterSidebar";
+import ResultCard from "@/components/ResultCard";
 import { supabase } from "@/integrations/supabase/client";
-
-type Product = {
-  id: string;
-  title: string;
-  price: number;
-  category: string;
-  location: string;
-  condition: string;
-  images: string[];
-  created_at: string;
-};
+import { useToast } from "@/hooks/use-toast";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q') || '';
-  const category = searchParams.get('category') || 'جميع الفئات';
-  const location = searchParams.get('location') || 'جميع المناطق';
-  
-  const [products, setProducts] = useState<Product[]>([]);
+  const query = searchParams.get("q") || "";
+  const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalResults, setTotalResults] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchResults = async () => {
       setLoading(true);
       try {
-        let queryBuilder = supabase
-          .from('products')
-          .select('*', { count: 'exact' });
-          
-        // Add search term filter
-        if (query) {
-          queryBuilder = queryBuilder.ilike('title', `%${query}%`);
+        // Search for products that match the query in title or description
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .or(`title.ilike.%${query}%, description.ilike.%${query}%`)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
         }
-        
-        // Add category filter if not "all categories"
-        if (category !== 'جميع الفئات') {
-          queryBuilder = queryBuilder.eq('category', category);
-        }
-        
-        // Add location filter if not "all locations"
-        if (location !== 'جميع المناطق') {
-          queryBuilder = queryBuilder.eq('location', location);
-        }
-        
-        const { data, error, count } = await queryBuilder;
-        
-        if (error) throw error;
-        
-        setProducts(data || []);
-        setTotalResults(count || 0);
-      } catch (error) {
-        console.error('Error fetching search results:', error);
+
+        setResults(data || []);
+      } catch (error: any) {
+        console.error("Error fetching search results:", error);
+        toast({
+          title: "Error",
+          description: `Failed to load search results: ${error.message}`,
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchProducts();
-  }, [query, category, location]);
+
+    if (query) {
+      fetchResults();
+    } else {
+      setResults([]);
+      setLoading(false);
+    }
+  }, [query, toast]);
+
+  // Filter group for the sidebar
+  const filterGroups = [
+    {
+      id: "category",
+      title: "الفئة",
+      options: [
+        { value: "electronics", label: "إلكترونيات" },
+        { value: "cars", label: "سيارات" },
+        { value: "realestate", label: "عقارات" },
+        { value: "furniture", label: "أثاث" },
+        { value: "other", label: "أخرى" },
+      ],
+    },
+    {
+      id: "price",
+      title: "السعر",
+      options: [
+        { value: "0-1000", label: "0 - 1,000 دج" },
+        { value: "1000-5000", label: "1,000 - 5,000 دج" },
+        { value: "5000-10000", label: "5,000 - 10,000 دج" },
+        { value: "10000-50000", label: "10,000 - 50,000 دج" },
+        { value: "50000+", label: "50,000+ دج" },
+      ],
+    },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 py-6">
-          <SearchBar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">نتائج البحث: {query}</h1>
+        
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/4">
+            <FilterSidebar 
+              title="تصفية النتائج"
+              filterGroups={filterGroups}
+            />
+          </div>
           
-          <div className="flex flex-col md:flex-row gap-6 mt-6">
-            <div className="w-full md:w-64 lg:w-72">
-              <FilterSidebar />
-            </div>
-            
-            <div className="flex-1">
-              <div className="mb-4 flex justify-between items-center">
-                <h1 className="text-xl font-bold">
-                  {query ? `نتائج البحث عن "${query}"` : 'جميع المنتجات'}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {totalResults} منتج
-                </p>
+          <div className="w-full md:w-3/4">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
               </div>
-              
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-                </div>
-              ) : products.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg py-8 text-center">
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">لا توجد نتائج</h3>
-                  <p className="text-gray-500">حاول استخدام كلمات بحث مختلفة أو تصفية أخرى</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {products.map((product) => (
-                    <ResultCard
-                      key={product.id}
-                      id={product.id}
-                      title={product.title}
-                      price={`${product.price} دج`}
-                      location={product.location}
-                      imageUrl={product.images?.[0] || '/placeholder.svg'}
-                      category={product.category}
-                      condition={product.condition}
-                      date={new Date(product.created_at).toLocaleDateString('ar-SA')}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            ) : results.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {results.map((product) => (
+                  <ResultCard
+                    key={product.id}
+                    id={product.id}
+                    title={product.title}
+                    price={product.price.toString()}
+                    image={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/300"}
+                    location={product.location}
+                    category={product.category}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500">لم يتم العثور على نتائج مطابقة للبحث</p>
+              </div>
+            )}
           </div>
         </div>
       </main>

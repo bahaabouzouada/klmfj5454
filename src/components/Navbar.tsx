@@ -87,12 +87,14 @@ const Navbar = () => {
                       </Link>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="cursor-pointer flex items-center">
-                        <UserCog className="ml-2 h-4 w-4" />
-                        <span>لوحة التحكم</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    {profile?.is_admin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer flex items-center">
+                          <UserCog className="ml-2 h-4 w-4" />
+                          <span>لوحة التحكم</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer flex items-center text-red-500 focus:text-red-500">

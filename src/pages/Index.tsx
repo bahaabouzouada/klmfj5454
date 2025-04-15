@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import CategoryCard from "@/components/CategoryCard";
@@ -7,41 +8,33 @@ import PromotionBanner from "@/components/PromotionBanner";
 import Footer from "@/components/Footer";
 import { Car, ShoppingBag, Building2, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  // Updated highlights with more realistic product listings
-  const highlights = [
-    {
-      id: "1",
-      title: "شاشة سامسونج QLED 4K جديدة - 65 بوصة",
-      image: "https://images.unsplash.com/photo-1593640495390-1d98f0c8ddbe?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-      category: "إلكترونيات",
-      price: "180,000 دج",
-      location: "الجزائر العاصمة",
-      condition: "جديد",
-      seller: "محل الإلكترونيات المركزي"
-    },
-    {
-      id: "2",
-      title: "سيارة هيونداي أكسنت 2019 - حالة ممتازة",
-      image: "https://images.unsplash.com/photo-1555367692-1960a922f8e5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80",
-      category: "سيارات مستعملة",
-      price: "1,200,000 دج",
-      location: "وهران",
-      condition: "مستعمل - ممتاز",
-      seller: "معرض السيارات الوطني"
-    },
-    {
-      id: "3",
-      title: "هاتف آيفون 13 برو - 256 جيجا بايت",
-      image: "https://images.unsplash.com/photo-1615394239346-8a6da8d64279?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-      category: "هواتف ذكية",
-      price: "95,000 دج",
-      location: "قسنطينة",
-      condition: "جديد - بكفالة",
-      seller: "متجر التكنولوجيا"
-    },
-  ];
+  const [latestProducts, setLatestProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch latest products
+    const fetchLatestProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(3);
+        
+        if (error) throw error;
+        setLatestProducts(data || []);
+      } catch (error) {
+        console.error("Error fetching latest products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestProducts();
+  }, []);
 
   // Data for keywords sections
   const carKeywords = [
@@ -128,7 +121,40 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Highlights */}
+        {/* Latest Products */}
+        <section className="py-10">
+          <div className="container mx-auto px-4">
+            <h2 className="text-xl md:text-2xl font-bold mb-6">أحدث المنتجات</h2>
+            
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+              </div>
+            ) : latestProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                {latestProducts.map((item) => (
+                  <HighlightCard
+                    key={item.id}
+                    id={item.id}
+                    title={item.title}
+                    image={item.images && item.images.length > 0 ? item.images[0] : "https://via.placeholder.com/300"}
+                    category={item.category}
+                    price={`${item.price} دج`}
+                    location={item.location}
+                    condition={item.condition}
+                    seller={item.seller_id}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">لا توجد منتجات متاحة حاليًا</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Old highlights section can stay with the static data */}
         <section className="py-10">
           <div className="container mx-auto px-4">
             <h2 className="text-xl md:text-2xl font-bold mb-6">اكتشافات بانتظارك</h2>
