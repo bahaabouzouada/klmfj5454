@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BellRing, Shield, Moon, Languages, Bell, Mail, Globe, Phone, Smartphone } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -40,6 +39,13 @@ const interfaceSchema = z.object({
   fontSize: z.enum(["small", "medium", "large"]).default("medium"),
 });
 
+// Type definition for user settings
+type UserSettings = {
+  notifications: z.infer<typeof notificationSchema>;
+  privacy: z.infer<typeof privacySchema>;
+  interface: z.infer<typeof interfaceSchema>;
+};
+
 const Settings = () => {
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +54,7 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // Default settings
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<UserSettings>({
     notifications: {
       emailNotifications: true,
       pushNotifications: true,
@@ -88,121 +94,67 @@ const Settings = () => {
       navigate("/auth");
     }
     
-    // Fetch user settings
-    const fetchSettings = async () => {
-      if (!user) return;
-      
+    // Since we don't have a user_settings table yet, we can use localStorage to store settings
+    // In a real app, you would fetch these from the database
+    const loadSettings = () => {
       try {
-        const { data, error } = await supabase
-          .from("user_settings")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-        
-        if (error) throw error;
-        
-        if (data) {
-          setSettings({
-            notifications: {
-              emailNotifications: data.email_notifications ?? true,
-              pushNotifications: data.push_notifications ?? true,
-              marketingEmails: data.marketing_emails ?? false,
-              newMessage: data.new_message_notification ?? true,
-              productUpdates: data.product_updates_notification ?? true,
-            },
-            privacy: {
-              profileVisibility: data.profile_visibility ?? "public",
-              showPhoneNumber: data.show_phone_number ?? false,
-              showEmail: data.show_email ?? false,
-            },
-            interface: {
-              language: data.language ?? "ar",
-              theme: data.theme ?? "light",
-              fontSize: data.font_size ?? "medium",
-            }
-          });
+        const savedSettings = localStorage.getItem('user_settings');
+        if (savedSettings) {
+          const parsedSettings = JSON.parse(savedSettings) as UserSettings;
           
+          setSettings(parsedSettings);
           // Update form values
-          notificationsForm.reset(settings.notifications);
-          privacyForm.reset(settings.privacy);
-          interfaceForm.reset(settings.interface);
+          notificationsForm.reset(parsedSettings.notifications);
+          privacyForm.reset(parsedSettings.privacy);
+          interfaceForm.reset(parsedSettings.interface);
         }
       } catch (error) {
-        console.error("Error fetching settings:", error);
+        console.error("Error loading settings:", error);
       }
     };
     
-    fetchSettings();
+    loadSettings();
   }, [user, isLoading, navigate]);
+  
+  // Apply theme from settings
+  useEffect(() => {
+    if (settings.interface.theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (settings.interface.theme === "light") {
+      document.documentElement.classList.remove("dark");
+    } else if (settings.interface.theme === "system") {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [settings.interface.theme]);
 
-  const saveSettings = async (formData: any, settingType: string) => {
+  const saveSettings = async (formData: any, settingType: keyof UserSettings) => {
     if (!user) return;
     
     setIsSaving(true);
     
     try {
-      // Convert form data to database format
-      let dbData = {};
+      // Update local state with new settings
+      const updatedSettings = {
+        ...settings,
+        [settingType]: formData
+      };
       
-      if (settingType === "notifications") {
-        dbData = {
-          email_notifications: formData.emailNotifications,
-          push_notifications: formData.pushNotifications,
-          marketing_emails: formData.marketingEmails,
-          new_message_notification: formData.newMessage,
-          product_updates_notification: formData.productUpdates,
-        };
-      } else if (settingType === "privacy") {
-        dbData = {
-          profile_visibility: formData.profileVisibility,
-          show_phone_number: formData.showPhoneNumber,
-          show_email: formData.showEmail,
-        };
-      } else if (settingType === "interface") {
-        dbData = {
-          language: formData.language,
-          theme: formData.theme,
-          font_size: formData.fontSize,
-        };
-      }
+      // In a production app, we would save to the database here
+      // For now, we'll use localStorage as a temporary solution
+      localStorage.setItem('user_settings', JSON.stringify(updatedSettings));
       
-      // Check if settings exist
-      const { data: existingSettings } = await supabase
-        .from("user_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      
-      let result;
-      
-      if (existingSettings) {
-        // Update existing settings
-        result = await supabase
-          .from("user_settings")
-          .update(dbData)
-          .eq("user_id", user.id);
-      } else {
-        // Insert new settings
-        result = await supabase
-          .from("user_settings")
-          .insert({
-            user_id: user.id,
-            ...dbData
-          });
-      }
-      
-      if (result.error) throw result.error;
+      setSettings(updatedSettings);
       
       toast({
         title: "تم الحفظ",
         description: "تم حفظ الإعدادات بنجاح",
       });
       
-      // Update local state with new settings
-      setSettings(prev => ({
-        ...prev,
-        [settingType]: formData
-      }));
     } catch (error: any) {
       console.error("Error saving settings:", error);
       toast({
