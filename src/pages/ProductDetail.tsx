@@ -37,24 +37,39 @@ const ProductDetail = () => {
   const [comments, setComments] = useState(mockComments);
   const [isFavorite, setIsFavorite] = useState(false);
   const [product, setProduct] = useState<any>(null);
+  const [sellerProfile, setSellerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // First fetch the product
+        const { data: productData, error: productError } = await supabase
           .from("products")
-          .select("*, profiles:seller_id(username)")
+          .select("*")
           .eq("id", id)
           .single();
 
-        if (error) {
-          throw error;
+        if (productError) {
+          throw productError;
         }
 
-        if (data) {
-          setProduct(data);
+        if (productData) {
+          setProduct(productData);
+          
+          // Then fetch the seller profile separately
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", productData.seller_id)
+            .single();
+            
+          if (profileError) {
+            console.error("Error fetching seller profile:", profileError);
+          } else {
+            setSellerProfile(profileData);
+          }
         }
       } catch (error: any) {
         console.error("Error fetching product:", error);
@@ -203,9 +218,9 @@ const ProductDetail = () => {
     : (productToDisplay.images || ["https://via.placeholder.com/800x600?text=No+Image"]);
 
   // Get seller name from profile relation or use fallback
-  const sellerName = product ? 
-    (product.profiles ? product.profiles.username : "بائع غير معروف") : 
-    productToDisplay.seller;
+  const sellerName = sellerProfile 
+    ? sellerProfile.username 
+    : (productToDisplay.seller || "بائع غير معروف");
 
   return (
     <div className="flex flex-col min-h-screen">
