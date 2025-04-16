@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
@@ -9,10 +8,15 @@ import Footer from "@/components/Footer";
 import { Car, ShoppingBag, Building2, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import AdBanner from "@/components/AdBanner";
 
 const Index = () => {
   const [latestProducts, setLatestProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showMainAd, setShowMainAd] = useState(true);
+  const [showSideAd, setShowSideAd] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Fetch latest products
@@ -97,6 +101,23 @@ const Index = () => {
     { id: 10, title: "تلفزيون", href: "/search?q=تلفزيون" },
   ];
 
+  // Handle ad closure
+  const handleCloseMainAd = () => {
+    setShowMainAd(false);
+    toast({
+      title: "تم إخفاء الإعلان",
+      description: "لن يظهر هذا الإعلان مرة أخرى خلال هذه الجلسة",
+    });
+  };
+
+  const handleCloseSideAd = () => {
+    setShowSideAd(false);
+    toast({
+      title: "تم إخفاء الإعلان",
+      description: "لن يظهر هذا الإعلان الجانبي مرة أخرى خلال هذه الجلسة",
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -146,45 +167,68 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Advertisement space */}
-        <section className="py-6">
-          <div className="container mx-auto px-4">
-            <div className="bg-gray-100 rounded-lg h-40 flex items-center justify-center">
-              <p className="text-gray-500">مساحة إعلانية</p>
+        {/* Main Advertisement space */}
+        {showMainAd && (
+          <section className="py-6">
+            <div className="container mx-auto px-4">
+              <AdBanner 
+                title="إعلان مميز" 
+                onClose={handleCloseMainAd}
+                image="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop"
+                height="h-60"
+                fullWidth
+              />
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* Latest Products */}
+        {/* Latest Products with Side Ad */}
         <section className="py-10">
           <div className="container mx-auto px-4">
             <h2 className="text-xl md:text-2xl font-bold mb-6">أحدث المنتجات</h2>
             
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className={`${showSideAd ? 'md:w-3/4' : 'w-full'}`}>
+                {loading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+                  </div>
+                ) : latestProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {latestProducts.map((item) => (
+                      <HighlightCard
+                        key={item.id}
+                        id={item.id}
+                        title={item.title}
+                        image={item.images && item.images.length > 0 ? item.images[0] : "https://via.placeholder.com/300"}
+                        category={item.category}
+                        price={`${item.price} دج`}
+                        location={item.location}
+                        condition={item.condition}
+                        seller={item.seller_id}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">لا توجد منتجات متاحة حاليًا</p>
+                  </div>
+                )}
               </div>
-            ) : latestProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {latestProducts.map((item) => (
-                  <HighlightCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    image={item.images && item.images.length > 0 ? item.images[0] : "https://via.placeholder.com/300"}
-                    category={item.category}
-                    price={`${item.price} دج`}
-                    location={item.location}
-                    condition={item.condition}
-                    seller={item.seller_id}
+              
+              {/* Side Advertisement */}
+              {showSideAd && (
+                <div className="md:w-1/4">
+                  <AdBanner 
+                    title="إعلان جانبي" 
+                    onClose={handleCloseSideAd}
+                    image="https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=800&auto=format&fit=crop"
+                    height="h-full min-h-[400px]"
+                    vertical
                   />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">لا توجد منتجات متاحة حاليًا</p>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </section>
 

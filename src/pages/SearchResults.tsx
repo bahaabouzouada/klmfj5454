@@ -7,6 +7,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import ResultCard from "@/components/ResultCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AdBanner from "@/components/AdBanner";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,7 @@ const SearchResults = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [showAd, setShowAd] = useState(true);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -81,12 +83,33 @@ const SearchResults = () => {
     return date.toLocaleDateString('ar-DZ');
   };
 
+  // Handle hiding advertisement
+  const handleHideAd = () => {
+    setShowAd(false);
+    toast({
+      title: "تم إخفاء الإعلان",
+      description: "لن يظهر هذا الإعلان مرة أخرى خلال هذه الجلسة",
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
       <main className="flex-grow container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">نتائج البحث: {query}</h1>
+        
+        {/* Advertisement section */}
+        {showAd && (
+          <div className="mb-6">
+            <AdBanner 
+              title="إعلان خاص" 
+              onClose={handleHideAd} 
+              image="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop"
+              height="h-32"
+            />
+          </div>
+        )}
         
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/4">
@@ -108,7 +131,7 @@ const SearchResults = () => {
                     key={product.id}
                     id={product.id}
                     title={product.title}
-                    price={product.price.toString()}
+                    price={`${product.price} دج`}
                     location={product.location}
                     image={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/300"}
                     date={formatDate(product.created_at)}

@@ -1,13 +1,20 @@
-
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
 import ResultCard from "@/components/ResultCard";
 import SearchBar from "@/components/SearchBar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import AdBanner from "@/components/AdBanner";
 
 const CategoryResults = () => {
   const { category } = useParams<{ category: string }>();
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const [showAd, setShowAd] = useState(true);
 
   // بيانات تجريبية للفلاتر حسب الفئة
   const getFiltersByCategory = (category: string) => {
@@ -108,143 +115,55 @@ const CategoryResults = () => {
     }
   };
 
-  // بيانات تجريبية للنتائج
-  const getCategoryResults = (category: string) => {
-    switch (category) {
+  // Get category mapping
+  const getCategoryMapping = (routeCategory: string | undefined) => {
+    switch (routeCategory) {
       case "cars":
-        return [
-          {
-            id: 1,
-            title: "تويوتا كورولا 2022",
-            price: "١١٥,٠٠٠ د.إ",
-            location: "دبي",
-            image:
-              "https://images.unsplash.com/photo-1590510733081-aaa302dad8f2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-            date: "منذ يومين",
-            href: "/cars/1",
-          },
-          {
-            id: 2,
-            title: "نيسان التيما 2021",
-            price: "٨٥,٠٠٠ د.إ",
-            location: "أبو ظبي",
-            image:
-              "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-            date: "منذ ٣ أيام",
-            href: "/cars/2",
-          },
-          {
-            id: 3,
-            title: "مرسيدس C-Class 2023",
-            price: "٢٣٠,٠٠٠ د.إ",
-            location: "الشارقة",
-            image:
-              "https://images.unsplash.com/photo-1563720223185-5ae1639f3d77?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-            date: "منذ أسبوع",
-            href: "/cars/3",
-          },
-          {
-            id: 4,
-            title: "أودي A6 2022",
-            price: "١٩٠,٠٠٠ د.إ",
-            location: "عجمان",
-            image:
-              "https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-            date: "منذ أسبوعين",
-            href: "/cars/4",
-          },
-        ];
+        return "سيارات";
       case "real-estate":
-        return [
-          {
-            id: 1,
-            title: "شقة فاخرة بإطلالة بحرية",
-            price: "١,٢٠٠,٠٠٠ د.إ",
-            location: "دبي مارينا",
-            image:
-              "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-            date: "منذ ٣ أيام",
-            href: "/real-estate/1",
-          },
-          {
-            id: 2,
-            title: "فيلا مستقلة مع حديقة",
-            price: "٣,٥٠٠,٠٠٠ د.إ",
-            location: "جميرا",
-            image:
-              "https://images.unsplash.com/photo-1613545325278-f24b0cae1224?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-            date: "منذ أسبوع",
-            href: "/real-estate/2",
-          },
-          {
-            id: 3,
-            title: "شقة غرفتين وصالة للإيجار",
-            price: "٧٠,٠٠٠ د.إ / سنوياً",
-            location: "البرشاء",
-            image:
-              "https://images.unsplash.com/photo-1560185007-5f0bb1866cab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-            date: "منذ ٥ أيام",
-            href: "/real-estate/3",
-          },
-          {
-            id: 4,
-            title: "أرض سكنية للبيع",
-            price: "٢,٢٠٠,٠٠٠ د.إ",
-            location: "الخوانيج",
-            image:
-              "https://images.unsplash.com/photo-1524813686514-a57563d77965?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80",
-            date: "منذ أسبوعين",
-            href: "/real-estate/4",
-          },
-        ];
+        return "عقارات";
+      case "jobs":
+        return "وظائف";
       case "market":
+        return "السوق";
       default:
-        return [
-          {
-            id: 1,
-            title: "آيفون 14 برو ماكس",
-            price: "٤,٥٠٠ د.إ",
-            location: "دبي",
-            image:
-              "https://images.unsplash.com/photo-1660800025976-bc447143ceaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-            date: "منذ يوم",
-            href: "/market/1",
-          },
-          {
-            id: 2,
-            title: "كنبة جلد إيطالي ٣ مقاعد",
-            price: "٢,٢٠٠ د.إ",
-            location: "أبو ظبي",
-            image:
-              "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-            date: "منذ ٣ أيام",
-            href: "/market/2",
-          },
-          {
-            id: 3,
-            title: "سماعات سوني XM4",
-            price: "٩٠٠ د.إ",
-            location: "الشارقة",
-            image:
-              "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=776&q=80",
-            date: "منذ أسبوع",
-            href: "/market/3",
-          },
-          {
-            id: 4,
-            title: "ساعة أبل الإصدار ٨",
-            price: "١,٣٠٠ د.إ",
-            location: "عجمان",
-            image:
-              "https://images.unsplash.com/photo-1617043786394-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-            date: "منذ أسبوعين",
-            href: "/market/4",
-          },
-        ];
+        return "منتجات";
     }
   };
 
-  // الحصول على عنوان الفئة
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      setLoading(true);
+      const dbCategory = getCategoryMapping(category);
+      
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("category", dbCategory)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setResults(data || []);
+      } catch (error: any) {
+        console.error("Error fetching category products:", error);
+        toast({
+          title: "خطأ",
+          description: `فشل في تحميل المنتجات: ${error.message}`,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryProducts();
+  }, [category, toast]);
+
+  // الحصول على عنوان الفئة للعرض
   const getCategoryTitle = (category: string) => {
     switch (category) {
       case "cars":
@@ -261,8 +180,22 @@ const CategoryResults = () => {
   };
 
   const filters = getFiltersByCategory(category || "");
-  const results = getCategoryResults(category || "");
   const categoryTitle = getCategoryTitle(category || "");
+
+  // Format the date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-DZ');
+  };
+
+  // Hide advertisement
+  const handleHideAd = () => {
+    setShowAd(false);
+    toast({
+      title: "تم إخفاء الإعلان",
+      description: "لن يظهر هذا الإعلان مرة أخرى خلال هذه الجلسة",
+    });
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -280,6 +213,20 @@ const CategoryResults = () => {
             </div>
           </div>
         </section>
+
+        {/* Advertisement section */}
+        {showAd && (
+          <section className="py-4">
+            <div className="container mx-auto px-4">
+              <AdBanner 
+                title="إعلان مميز" 
+                onClose={handleHideAd} 
+                image="https://images.unsplash.com/photo-1624486522963-89c929e1e83c?w=800&auto=format&fit=crop"
+                height="h-40"
+              />
+            </div>
+          </section>
+        )}
 
         {/* Results section with sidebar */}
         <section className="py-8">
@@ -312,11 +259,30 @@ const CategoryResults = () => {
                 </div>
 
                 {/* Results list */}
-                <div className="space-y-4">
-                  {results.map((result) => (
-                    <ResultCard key={result.id} {...result} />
-                  ))}
-                </div>
+                {loading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+                  </div>
+                ) : results.length > 0 ? (
+                  <div className="space-y-4">
+                    {results.map((product) => (
+                      <ResultCard 
+                        key={product.id}
+                        id={product.id}
+                        title={product.title}
+                        price={`${product.price} دج`}
+                        location={product.location}
+                        image={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/300"}
+                        date={formatDate(product.created_at)}
+                        href={`/product/${product.id}`}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">لم يتم العثور على نتائج مطابقة في هذه الفئة</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
