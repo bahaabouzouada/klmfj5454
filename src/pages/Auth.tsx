@@ -47,17 +47,17 @@ const Auth = () => {
       if (error) {
         console.error("Login error:", error);
         if (error.message === "Invalid login credentials") {
-          toast.error("بيانات الدخول غير صحيحة، تأكد من البريد الإلكتروني وكلمة المرور");
+          toast("بيانات الدخول غير صحيحة، تأكد من البريد الإلكتروني وكلمة المرور");
         } else {
-          toast.error(error.message);
+          toast(error.message);
         }
       } else {
-        toast.success("تم تسجيل الدخول بنجاح");
+        toast("تم تسجيل الدخول بنجاح");
         navigate("/");
       }
     } catch (error: any) {
       console.error("Login exception:", error);
-      toast.error(error.message || "حدث خطأ أثناء تسجيل الدخول");
+      toast(error.message || "حدث خطأ أثناء تسجيل الدخول");
     } finally {
       setIsLoading(false);
     }
@@ -68,29 +68,49 @@ const Auth = () => {
     setIsLoading(true);
     
     if (registerData.password !== registerData.confirmPassword) {
-      toast.error("كلمات المرور غير متطابقة");
+      toast("كلمات المرور غير متطابقة");
+      setIsLoading(false);
+      return;
+    }
+    
+    if (registerData.password.length < 6) {
+      toast("كلمة المرور يجب أن تكون على الأقل 6 أحرف");
       setIsLoading(false);
       return;
     }
     
     try {
-      const { error } = await signUp(
+      const { error, data } = await signUp(
         registerData.email,
         registerData.password,
         registerData.username
       );
       
+      console.log("Registration response:", data);
+      
       if (error) {
         console.error("Registration error:", error);
-        toast.error(error.message);
+        
+        // Provide more user-friendly error messages
+        if (error.message.includes("already registered")) {
+          toast("هذا البريد الإلكتروني مسجل بالفعل، الرجاء استخدام بريد آخر أو تسجيل الدخول");
+        } else {
+          toast(error.message);
+        }
       } else {
-        toast.success("تم إنشاء الحساب بنجاح");
-        toast.info("تم تسجيل دخولك تلقائيًا");
-        navigate("/");
+        toast("تم إنشاء الحساب بنجاح");
+        
+        // Redirect to home page even before email confirmation
+        if (data.user) {
+          toast("تم تسجيل دخولك تلقائيًا");
+          navigate("/");
+        } else {
+          toast("تم إرسال رابط تأكيد إلى بريدك الإلكتروني، الرجاء التحقق من بريدك وتأكيد حسابك");
+        }
       }
     } catch (error: any) {
       console.error("Registration exception:", error);
-      toast.error(error.message || "حدث خطأ أثناء إنشاء الحساب");
+      toast(error.message || "حدث خطأ أثناء إنشاء الحساب");
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +194,9 @@ const Auth = () => {
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     required
+                    minLength={6}
                   />
+                  <p className="text-xs text-gray-500">كلمة المرور يجب أن تكون على الأقل 6 أحرف</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>

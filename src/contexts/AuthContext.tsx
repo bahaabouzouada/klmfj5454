@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User, AuthResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type Profile = {
   id: string;
@@ -38,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Set up auth state listener FIRST
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (event, currentSession) => {
+          console.log("Auth state changed:", event, currentSession?.user?.id);
           setSession(currentSession);
           setUser(currentSession?.user || null);
           
@@ -70,39 +72,106 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
   
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
       
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
+      setProfile(data as Profile);
+    } catch (error) {
+      console.error('Exception fetching profile:', error);
     }
-    
-    setProfile(data as Profile);
   };
   
   const signIn = async (email: string, password: string) => {
-    return supabase.auth.signInWithPassword({ email, password });
+    try {
+      const response = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (response.error) {
+        console.error('Sign in error:', response.error);
+        toast(`خطأ في تسجيل الدخول: ${response.error.message}`);
+      } else if (response.data.user) {
+        toast(`تم تسجيل الدخول بنجاح! مرحباً بك`);
+      }
+      
+      return response;
+    } catch (error: any) {
+      console.error('Exception during sign in:', error);
+      toast(`خطأ غير متوقع: ${error.message}`);
+      throw error;
+    }
   };
   
   const signUp = async (email: string, password: string, username: string) => {
-    return supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username
-        },
-        emailRedirectTo: window.location.origin,
+    try {
+      const response = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            first_name: null,
+            last_name: null,
+            avatar_url: null
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      
+      if (response.error) {
+        console.error('Sign up error:', response.error);
+        toast(`خطأ في إنشاء الحساب: ${response.error.message}`);
+      } else if (response.data.user) {
+        // Try to create a profile manually in case the trigger doesn't work
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+              { 
+                id: response.data.user.id,
+                username: username,
+                first_name: null,
+                last_name: null,
+                avatar_url: null,
+                is_admin: false
+              }
+            ]);
+            
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          } else {
+            console.log('Profile created successfully');
+          }
+        } catch (profileEx) {
+          console.error('Exception creating profile:', profileEx);
+        }
+        
+        toast(`تم إنشاء الحساب بنجاح!`);
       }
-    });
+      
+      return response;
+    } catch (error: any) {
+      console.error('Exception during sign up:', error);
+      toast(`خطأ غير متوقع: ${error.message}`);
+      throw error;
+    }
   };
   
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      toast(`تم تسجيل الخروج بنجاح`);
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      toast(`خطأ في تسجيل الخروج: ${error.message}`);
+    }
   };
   
   const value = {
