@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import CreateAdminButton from "@/components/CreateAdminButton";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const { signIn, signUp, user } = useAuth();
@@ -44,20 +45,11 @@ const Auth = () => {
     try {
       const { error } = await signIn(loginData.email, loginData.password);
       
-      if (error) {
-        console.error("Login error:", error);
-        if (error.message === "Invalid login credentials") {
-          toast("بيانات الدخول غير صحيحة، تأكد من البريد الإلكتروني وكلمة المرور");
-        } else {
-          toast(error.message);
-        }
-      } else {
-        toast("تم تسجيل الدخول بنجاح");
+      if (!error) {
         navigate("/");
       }
     } catch (error: any) {
       console.error("Login exception:", error);
-      toast(error.message || "حدث خطأ أثناء تسجيل الدخول");
     } finally {
       setIsLoading(false);
     }
@@ -86,31 +78,12 @@ const Auth = () => {
         registerData.username
       );
       
-      console.log("Registration response:", data);
-      
-      if (error) {
-        console.error("Registration error:", error);
-        
-        // Provide more user-friendly error messages
-        if (error.message.includes("already registered")) {
-          toast("هذا البريد الإلكتروني مسجل بالفعل، الرجاء استخدام بريد آخر أو تسجيل الدخول");
-        } else {
-          toast(error.message);
-        }
-      } else {
-        toast("تم إنشاء الحساب بنجاح");
-        
-        // Redirect to home page even before email confirmation
-        if (data.user) {
-          toast("تم تسجيل دخولك تلقائيًا");
-          navigate("/");
-        } else {
-          toast("تم إرسال رابط تأكيد إلى بريدك الإلكتروني، الرجاء التحقق من بريدك وتأكيد حسابك");
-        }
+      if (!error && data.user) {
+        // User was automatically signed in by the signUp function
+        navigate("/");
       }
     } catch (error: any) {
       console.error("Registration exception:", error);
-      toast(error.message || "حدث خطأ أثناء إنشاء الحساب");
     } finally {
       setIsLoading(false);
     }

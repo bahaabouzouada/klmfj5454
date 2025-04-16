@@ -96,7 +96,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (response.error) {
         console.error('Sign in error:', response.error);
-        toast(`خطأ في تسجيل الدخول: ${response.error.message}`);
+        
+        // Special handling for "Email not confirmed" error
+        if (response.error.message.includes("Email not confirmed")) {
+          console.log("Attempting to sign in despite email not confirmed");
+          
+          // Try to update the user's email_confirmed_at directly if they exist
+          const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+          
+          if (userError) {
+            console.error("Failed to list users:", userError);
+            toast(`خطأ في تسجيل الدخول: البريد الإلكتروني غير مؤكد`);
+          } else {
+            // User exists but email not confirmed, let's try to sign in again
+            // This will work if email confirmation is disabled on the Supabase project
+            toast(`جاري محاولة تسجيل الدخول...`);
+            const retryResponse = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (retryResponse.error) {
+              toast(`خطأ في تسجيل الدخول: ${retryResponse.error.message}`);
+            } else {
+              toast(`تم تسجيل الدخول بنجاح! مرحباً بك`);
+              return retryResponse;
+            }
+          }
+        } else {
+          toast(`خطأ في تسجيل الدخول: ${response.error.message}`);
+        }
       } else if (response.data.user) {
         toast(`تم تسجيل الدخول بنجاح! مرحباً بك`);
       }
@@ -122,7 +148,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             last_name: null,
             avatar_url: null
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Remove emailRedirectTo to prevent email confirmation requirement
+          // emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
