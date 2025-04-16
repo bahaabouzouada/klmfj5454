@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   Settings,
   ShoppingBag,
   Users,
+  ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -203,6 +205,14 @@ const AdminDashboard = () => {
                   >
                     <ShoppingBag className="h-4 w-4 ml-2" />
                     المنتجات
+                  </Button>
+                  <Button
+                    variant={activeTab === "ads" ? "default" : "ghost"}
+                    className="w-full justify-start rounded-none pr-2 text-right"
+                    onClick={() => navigate("/admin/ads")}
+                  >
+                    <ImageIcon className="h-4 w-4 ml-2" />
+                    الإعلانات
                   </Button>
                   <Button
                     variant={activeTab === "messages" ? "default" : "ghost"}

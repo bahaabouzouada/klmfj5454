@@ -111,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const signUp = async (email: string, password: string, username: string) => {
     try {
+      // First, create the auth user
       const response = await supabase.auth.signUp({
         email,
         password,
@@ -128,32 +129,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.error) {
         console.error('Sign up error:', response.error);
         toast(`خطأ في إنشاء الحساب: ${response.error.message}`);
-      } else if (response.data.user) {
-        // Try to create a profile manually in case the trigger doesn't work
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([
-              { 
-                id: response.data.user.id,
-                username: username,
-                first_name: null,
-                last_name: null,
-                avatar_url: null,
-                is_admin: false
-              }
-            ]);
-            
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-          } else {
-            console.log('Profile created successfully');
-          }
-        } catch (profileEx) {
-          console.error('Exception creating profile:', profileEx);
-        }
+        return response;
+      }
+      
+      if (response.data.user) {
+        console.log('User created successfully, creating profile');
         
-        toast(`تم إنشاء الحساب بنجاح!`);
+        // Manually create a profile in the profiles table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            { 
+              id: response.data.user.id,
+              username: username,
+              first_name: null,
+              last_name: null,
+              avatar_url: null,
+              is_admin: false
+            }
+          ]);
+          
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          toast(`تم إنشاء الحساب ولكن حدث خطأ في إنشاء الملف الشخصي: ${profileError.message}`);
+        } else {
+          console.log('Profile created successfully');
+          toast(`تم إنشاء الحساب بنجاح!`);
+          
+          // Sign in the user immediately after successful registration
+          await signIn(email, password);
+        }
       }
       
       return response;
